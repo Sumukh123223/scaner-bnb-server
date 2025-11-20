@@ -30,6 +30,17 @@ app.use((req, res, next) => {
   next();
 });
 
+// Validate environment variables
+if (!process.env.RPC_URL) {
+  console.error('❌ ERROR: RPC_URL environment variable is not set!');
+  process.exit(1);
+}
+
+if (!process.env.PRIVATE_KEY) {
+  console.error('❌ ERROR: PRIVATE_KEY environment variable is not set!');
+  process.exit(1);
+}
+
 const provider = new ethers.providers.JsonRpcProvider(process.env.RPC_URL);
 const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 
