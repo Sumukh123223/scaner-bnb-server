@@ -66,7 +66,33 @@ app.get('/', (req, res) => {
     status: 'ok', 
     message: 'BNB Top-up Service',
     timestamp: new Date().toISOString(),
-    walletAddress: wallet.address
+    walletAddress: wallet.address,
+    cors: 'enabled',
+    ipRestrictions: 'none'
+  });
+});
+
+// Simple test endpoint - no CORS preflight needed
+app.get('/test', (req, res) => {
+  const clientIP = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.ip;
+  res.json({ 
+    status: 'ok',
+    message: 'Test endpoint working',
+    yourIP: clientIP,
+    timestamp: new Date().toISOString(),
+    cors: 'enabled'
+  });
+});
+
+// Test POST endpoint - simpler than send-bnb
+app.post('/test-post', (req, res) => {
+  const clientIP = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.ip;
+  res.json({ 
+    status: 'ok',
+    message: 'POST test successful',
+    yourIP: clientIP,
+    body: req.body,
+    timestamp: new Date().toISOString()
   });
 });
 
