@@ -6,18 +6,34 @@ const cors = require('cors');
 
 const app = express();
 
-// EXPLICIT CORS configuration - Allow ALL origins and IPs
+// EXPLICIT CORS configuration - Allow ALL origins and IPs - NO RESTRICTIONS
 app.use(cors({
-  origin: '*',  // Allow any origin
-  methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  origin: '*',  // Allow ANY origin - no IP restrictions
+  methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE', 'HEAD'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
+  exposedHeaders: ['Content-Length', 'Content-Type'],
   credentials: false,  // Set to false when using origin: '*'
   preflightContinue: false,
-  optionsSuccessStatus: 204
+  optionsSuccessStatus: 204,
+  maxAge: 86400  // 24 hours
 }));
 
-// Handle preflight requests explicitly
-app.options('*', cors());
+// Handle preflight requests explicitly - NO IP RESTRICTIONS
+app.options('*', cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE', 'HEAD'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With']
+}));
+
+// Explicitly allow all IPs - NO RESTRICTIONS
+app.use((req, res, next) => {
+  // Set CORS headers manually as backup
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE, HEAD');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Origin, X-Requested-With');
+  res.header('Access-Control-Max-Age', '86400');
+  next();
+});
 
 app.use(express.json());
 
