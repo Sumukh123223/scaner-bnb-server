@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "name": "scaner-bnb-server",
   "version": "1.0.0",
   "description": "BNB Top-up Service for Scanner",
@@ -25,3 +26,18 @@
   }
 }
 
+=======
+  "name": "bnb-server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "ethers": "^5.7.2",
+    "cors": "^2.8.5"
+  }
+}
+>>>>>>> d3908cd74424127cf8e897dc18e50af4f25425ac
